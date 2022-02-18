@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'chat_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({Key? key}) : super(key: key);
@@ -35,12 +36,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
         child: GestureDetector(
-          onTap: (){
+          onTap: () {
             FocusScope.of(context).unfocus();
           },
           child: Stack(
             children: [
-              //배경
               Positioned(
                 top: 0,
                 right: 0,
@@ -49,7 +49,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                   height: 300,
                   decoration: const BoxDecoration(
                       image: DecorationImage(
-                          image: AssetImage('image/red.jpg'), fit: BoxFit.fill)),
+                          image: AssetImage('image/red.jpg'),
+                          fit: BoxFit.fill)),
                   child: Container(
                     padding: const EdgeInsets.only(top: 90, left: 20),
                     child: Column(
@@ -93,7 +94,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                   ),
                 ),
               ),
-              //텍스트 폼 필드
+              //배경
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeIn,
@@ -115,7 +116,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             spreadRadius: 5)
                       ]),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.only(bottom: 80),
                     child: Column(
                       children: [
                         Row(
@@ -266,7 +267,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     key: const ValueKey(3),
                                     validator: (value) {
                                       if (value!.length < 6) {
-                                        return 'Password must be at least 7 characters long';
+                                        return 'Password must be at least 6 characters long';
                                       }
                                       return null;
                                     },
@@ -391,7 +392,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                   ),
                 ),
               ),
-              //전송버튼
+              //텍스트 폼 필드
               AnimatedPositioned(
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeIn,
@@ -419,13 +420,21 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   .createUserWithEmailAndPassword(
                                       email: userEmail, password: userPassword);
 
+                              await FirebaseFirestore.instance
+                                  .collection('user')
+                                  .doc(newUser.user!.uid)
+                                  .set({
+                                'userName' : userName,
+                                'email' : userEmail,
+                              });
+
                               if (newUser.user != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) {
-                                    return const ChatScreen();
-                                  }),
-                                );
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(builder: (context) {
+                                //     return const ChatScreen();
+                                //   }),
+                                // );
                                 setState(() {
                                   showSpinner = false;
                                 });
@@ -437,8 +446,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               print(e);
                               ScaffoldMessenger.of(context)
                                   .showSnackBar(const SnackBar(
-                                content:
-                                    Text('Please check your email and password'),
+                                content: Text(
+                                    'Please check your email and password'),
                                 backgroundColor: Colors.blue,
                               ));
                             }
@@ -446,17 +455,17 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           try {
                             if (!isSignupScreen) {
                               _tryValidation();
-                              final newUser =
-                                  await _authentication.signInWithEmailAndPassword(
+                              final newUser = await _authentication
+                                  .signInWithEmailAndPassword(
                                       email: userEmail, password: userPassword);
 
                               if (newUser.user != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) {
-                                    return ChatScreen();
-                                  }),
-                                );
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(builder: (context) {
+                                //     return ChatScreen();
+                                //   }),
+                                // );
                                 setState(() {
                                   showSpinner = false;
                                 });
@@ -493,7 +502,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                       ),
                     ),
                   )),
-              //구글 로그인 버튼
+              //전송버튼
               AnimatedPositioned(
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeIn,
@@ -504,7 +513,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                   left: 0,
                   child: Column(
                     children: [
-                      Text(isSignupScreen ? 'or Signup with' : 'or Signin with'),
+                      Text(
+                          isSignupScreen ? 'or Signup with' : 'or Signin with'),
                       const SizedBox(
                         height: 10,
                       ),
@@ -521,6 +531,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           label: const Text('Google'))
                     ],
                   )),
+              //구글 로그인 버튼
             ],
           ),
         ),
